@@ -11,38 +11,30 @@ import time
 
 def test_collegedunia_ui_validation():
 
-    print("\n========== TEST STARTED ==========\n")
-
-    # ---------------------------------------------------
     # Chrome Setup
-    # ---------------------------------------------------
-
     options = Options()
 
-    # Keep browser visible
-    # options.add_argument("--headless")
-
+    # CI/CD Compatible Options
+    options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
 
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
         options=options
     )
 
-    driver.implicitly_wait(10)
-
     wait = WebDriverWait(driver, 10)
 
-    # ---------------------------------------------------
     # URL
-    # ---------------------------------------------------
-
     url = "https://collegedunia.com/university/25451-indira-gandhi-national-open-university-ignou-new-delhi/master-of-arts-ma-part-time"
 
     driver.get(url)
 
     driver.maximize_window()
+
+    print("\n========== TEST STARTED ==========\n")
 
     print("URL Opened Successfully")
     print("Current URL:", driver.current_url)
@@ -80,13 +72,14 @@ def test_collegedunia_ui_validation():
 
         src = img.get_attribute("src")
 
-        if src:
+        # Ignore base64 images
+        if src and src.startswith("http"):
 
             try:
 
                 response = requests.get(src, timeout=5)
 
-                if response.status_code != 200:
+                if response.status_code >= 400:
                     broken_images += 1
                     print(f"[BROKEN IMAGE] {src}")
 
@@ -132,21 +125,19 @@ def test_collegedunia_ui_validation():
         try:
 
             element = wait.until(
-                EC.presence_of_element_located(
-                    (By.PARTIAL_LINK_TEXT, silo)
+                EC.element_to_be_clickable(
+                    (By.LINK_TEXT, silo)
                 )
             )
 
             driver.execute_script(
-                "arguments[0].scrollIntoView({block:'center'});",
+                "arguments[0].scrollIntoView(true);",
                 element
             )
 
             time.sleep(1)
 
             element.click()
-
-            time.sleep(2)
 
             print(f"[PASS] {silo} Navigation Working")
 
@@ -156,17 +147,17 @@ def test_collegedunia_ui_validation():
             print(e)
 
     # ---------------------------------------------------
-    # 5. Search Bar Validation
+    # 5. Search/Input Validation
     # ---------------------------------------------------
 
     print("\n========== SEARCH BAR VALIDATION ==========")
 
-    search_boxes = driver.find_elements(By.TAG_NAME, "input")
+    inputs = driver.find_elements(By.TAG_NAME, "input")
 
-    if len(search_boxes) > 0:
-        print(f"[PASS] Input/Search Fields Found: {len(search_boxes)}")
+    if len(inputs) > 0:
+        print(f"[PASS] Input/Search Fields Found: {len(inputs)}")
     else:
-        print("[FAIL] Search Bar Not Found")
+        print("[FAIL] No Input Fields Found")
 
     # ---------------------------------------------------
     # 6. Slider Validation
@@ -189,8 +180,6 @@ def test_collegedunia_ui_validation():
 
     driver.set_window_size(375, 812)
 
-    time.sleep(2)
-
     mobile_width = driver.execute_script(
         "return window.innerWidth;"
     )
@@ -205,7 +194,9 @@ def test_collegedunia_ui_validation():
 
     links = driver.find_elements(By.TAG_NAME, "a")
 
-    print(f"Total Links Found: {len(links)}")
+    total_links = len(links)
+
+    print(f"Total Links Found: {total_links}")
 
     broken_links = 0
 
@@ -252,13 +243,4 @@ TESTED FEATURES:
 
     print("Automation Testing Completed Successfully")
 
-    # Keep browser open for 10 seconds
-    time.sleep(10)
-
     driver.quit()
-
-
-# ---------------------------------------------------
-# MAIN FUNCTION CALL
-# ---------------------------------------------------
-

@@ -17,13 +17,23 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+
+      - name: Install Python Dependencies
         run: |
           pip install selenium
           pip install webdriver-manager
           pip install pytest
           pip install pytest-html
           pip install requests
+
+      - name: Clean pytest cache
+        run: |
+          find . -type d -name __pycache__ -exec rm -rf {} +
+          find . -type f -name "*.pyc" -delete
 
       - name: Run Selenium Tests
         run: |
