@@ -1,0 +1,30 @@
+name: Selenium Automation Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          pip install selenium
+          pip install webdriver-manager
+          pip install pytest
+          pip install pytest-html
+          pip install requests
+
+      - name: Run Selenium Tests
+        run: |
+          pytest -v --html=report.html
